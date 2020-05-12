@@ -37,7 +37,9 @@ public class NotificationController {
 
         System.out.println("Creating new Inbox name = " + name);
         inboxRepository.save(new Inbox(name));
-        return request.getRequestURL().append("/").append(name).toString();
+        String inboxUrl = request.getRequestURL().append("/").append(name).toString();
+        System.out.println("Inbox url===>" + inboxUrl);
+        return inboxUrl;
     }
 
     @PostMapping(value = "/webhook-inbox/{name}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -74,8 +76,8 @@ public class NotificationController {
     }
 
     private String getErrorString(long id, String err) {
-        HashMap<String, String> map = new HashMap() ;
-        map. put("Error", "An error occurred during decryption for notification id: " + id + "! " + err);
+        HashMap<String, String> map = new HashMap();
+        map.put("Error", "An error occurred during decryption for notification id: " + id + "! " + err);
         return new Gson().toJson(map);
     }
 }
