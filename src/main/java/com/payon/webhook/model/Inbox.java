@@ -1,23 +1,43 @@
 package com.payon.webhook.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 public class Inbox {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private String name;
+
+    @CreationTimestamp
+    private LocalDateTime createdTime;
+
     private String configurationKey;
-    @OneToMany(cascade = {CascadeType.ALL})
+
+    @OneToMany(cascade = {CascadeType.ALL},
+            fetch = FetchType.LAZY)
     private List<WebHookNotification> notifications;
 
     public Inbox() {
+        this.notifications = new ArrayList<>();
     }
 
     public Inbox(String name) {
         this.name = name;
+        this.notifications = new ArrayList<>();
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
     }
 
     public long getId() {
@@ -30,10 +50,6 @@ public class Inbox {
 
     public List<WebHookNotification> getNotifications() {
         return notifications;
-    }
-
-    public void setNotifications(List<WebHookNotification> notifications) {
-        this.notifications = notifications;
     }
 
     public String getName() {

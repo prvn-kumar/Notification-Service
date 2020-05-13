@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.payon</groupId>
-    <artifactId>webhook</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>webhook</name>
+    <artifactId>webhook-inbox</artifactId>
+    <version>1.0.0</version>
+    <name>webhook-inbox-app</name>
     <description>Receive webhook notifications</description>
 
     <properties>
@@ -35,12 +35,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
         <dependency>
             <groupId>org.bouncycastle</groupId>

@@ -1,13 +1,20 @@
 package com.payon.webhook.model;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class WebHookNotification {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(columnDefinition="LONGTEXT")
+
+    @CreationTimestamp
+    private LocalDateTime createdTime;
+
+    @Column(columnDefinition = "LONGTEXT")
     private String encryptedBody;
     private String ivHeader;
     private String authHeader;
@@ -18,6 +25,14 @@ public class WebHookNotification {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
     }
 
     public String getEncryptedBody() {
