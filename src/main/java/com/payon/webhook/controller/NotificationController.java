@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payon.webhook.exceptions.RecordNotFoundException;
 import com.payon.webhook.exceptions.WebhookException;
+import com.payon.webhook.model.DecryptedNotificationDto;
 import com.payon.webhook.model.Inbox;
 import com.payon.webhook.model.InboxDto;
 import com.payon.webhook.model.WebHookNotification;
@@ -20,7 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -45,7 +45,6 @@ public class NotificationController {
                 name = inboxService.createInbox();
             } while (inboxRepository.findByName(name) != null && !inboxRepository.findByName(name).isEmpty());
 
-            System.out.println("Creating new Inbox name = " + name);
             inboxRepository.save(new Inbox(name));
 
             StringBuffer inboxUrl = request.getRequestURL();
@@ -81,55 +80,89 @@ public class NotificationController {
     }
 
     @GetMapping("/webhook-inbox/{name}")
-    @ResponseBody
-    public ResponseEntity<?> getNotifications(@PathVariable String name, @RequestParam(required = false) String configKey) {
-        if (inboxRepository.findByName(name).isEmpty())
+    public InboxDto getInbox(@PathVariable String name, HttpServletRequest request) {
+        List<Inbox> inboxResult = inboxRepository.findByName(name);
+        if (inboxResult.isEmpty())
             throw new RecordNotFoundException("Inbox '" + name + "' does no exist");
-        if (configKey == null)
-            return new ResponseEntity<List<WebHookNotification>>(inboxRepository.findByName(name).get(0).getNotifications(), HttpStatus.OK);
 
-        List<String> decryptedNotifications = new ArrayList<>();
+        StringBuffer inboxUrl = request.getRequestURL();
+        if (!request.getRequestURL().toString().endsWith("/"))
+            inboxUrl.append("/");
+        inboxUrl.append(name);
 
-        inboxRepository.findByName(name).get(0).getNotifications().forEach(notification -> {
-            try {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readValue(DecryptService.decrypt(notification, configKey), JsonNode.class);
-                decryptedNotifications.add(jsonNode.toString()); //remove pretty-printing
-            } catch (Exception e) {
-                try {
-                    decryptedNotifications.add(getErrorString(notification.getId(), e.getMessage()));
-                } catch (Exception ex) {
-                    System.err.println(e.getMessage());
-                    throw new WebhookException(e.getMessage());
-                }
-            }
-        });
-        return new ResponseEntity<List<String>>(decryptedNotifications, HttpStatus.OK);
+        InboxDto dto = new InboxDto(name, inboxUrl.toString());
+        dto.setConfigKeySaved(inboxResult.get(0).getConfigurationKey() != null
+                && !inboxResult.get(0).getConfigurationKey().isEmpty());
+
+        dto.setNotificationCount(inboxResult.get(0).getNotifications().size());
+        return dto;
     }
 
-    @GetMapping("/webhook-inbox/{name}/{id}")
-    @ResponseBody
-    public ResponseEntity<?> getNotificationById(@PathVariable String name, @PathVariable long id, @RequestParam(required = false) String configKey) {
-        if (inboxRepository.findByName(name).isEmpty())
-            throw new RecordNotFoundException("Inbox '" + name + "' does no exist");
+    @GetMapping("/webhook-inbox/{name}/notification")
+    public List<? extends WebHookNotification> getNotifications(@PathVariable String name,
+                                                                @RequestParam(required = false) String configKey,
+                                                                @RequestParam(required = false) boolean saveConfigKey) {
+
+        Inbox inbox = checkAndSaveConfig(name, configKey, saveConfigKey);
+
+        String decryptionKey = getDecryptionKey(inbox, configKey);
+
+        if (decryptionKey == null || decryptionKey.isEmpty())
+            return inboxRepository.findByName(name).get(0).getNotifications();
+
+        List<DecryptedNotificationDto> decryptedNotifications = new ArrayList<>();
+
+        inboxRepository.findByName(name).get(0).getNotifications().forEach(notification -> {
+            decryptedNotifications.add(getDecryptedNotification(notification, decryptionKey));
+        });
+        return decryptedNotifications;
+    }
+
+    @GetMapping("/webhook-inbox/{name}/notification/{id}")
+    public WebHookNotification getNotificationById(@PathVariable String name, @PathVariable long id,
+                                                   @RequestParam(required = false) String configKey,
+                                                   @RequestParam(required = false) boolean saveConfigKey) {
+
+        Inbox inbox = checkAndSaveConfig(name, configKey, saveConfigKey);
+
         WebHookNotification notification = webhookNotificationRepository.findById(id).orElseThrow(()
                 -> new RecordNotFoundException("Notification does not found for id: " + id));
-        if (configKey == null)
-            return new ResponseEntity<WebHookNotification>(notification, HttpStatus.OK);
 
+        String decryptionKey = getDecryptionKey(inbox, configKey);
+        if (decryptionKey == null || decryptionKey.isEmpty())
+            return notification;
+
+        return getDecryptedNotification(notification, decryptionKey);
+    }
+
+    private Inbox checkAndSaveConfig(String name, String configKey, boolean saveConfigKey) {
+        if (inboxRepository.findByName(name).isEmpty())
+            throw new RecordNotFoundException("Inbox '" + name + "' does no exist");
+
+        Inbox inbox = inboxRepository.findByName(name).get(0);
+
+        if (saveConfigKey && configKey != null && !configKey.isEmpty()) {
+            inbox.setConfigurationKey(configKey);
+            inboxRepository.save(inbox);
+        }
+        return inbox;
+    }
+
+    private DecryptedNotificationDto getDecryptedNotification(WebHookNotification notification, String decryptionKey) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readValue(DecryptService.decrypt(notification, configKey), JsonNode.class);
-            return new ResponseEntity<String>(jsonNode.toString(), HttpStatus.OK);
+            JsonNode jsonNode = objectMapper.readValue(DecryptService.decrypt(notification, decryptionKey), JsonNode.class);
+            DecryptedNotificationDto decrypted = new DecryptedNotificationDto();
+            decrypted.setDecryptedContent(jsonNode.toString());
+            decrypted.setId(notification.getId());
+            decrypted.setCreatedTime(notification.getCreatedTime());
+            return decrypted;
         } catch (Exception e) {
             throw new WebhookException(e.getMessage());
         }
     }
 
-    private String getErrorString(long id, String err) throws Exception {
-        HashMap<String, String> map = new HashMap();
-        map.put("Error", "An error occurred during decryption for notification id: " + id + "! " + err);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(map);
+    private String getDecryptionKey(Inbox inbox, String configKey) {
+        return configKey != null && !configKey.isEmpty() ? configKey : inbox.getConfigurationKey();
     }
 }
