@@ -1,0 +1,41 @@
+<div class="main-container">
+  <header class="header-6">
+    <div class="branding">
+      <a href="/" class="nav-link">
+        <!-- <clr-icon shape="inbox"></clr-icon> -->
+        <span class="title">ACI Webhook App</span>
+      </a>
+    </div>
+  </header>
+
+  <div class="content-container">
+    <div class="content-area" *ngIf="!inboxOpened">
+      <div *ngIf="error">
+        <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
+      </div>
+
+      <span class="center" style="font-size: large; font-weight: bolder;">
+        WebhookInbox receives HTTP POST requests and captures the data for later inspection.
+      </span>
+      <span class="center" style="padding-top: 30px;">
+        When you create an inbox, you are given a generated URL
+        that is to be used by the sending application.
+      </span>
+      <div class="center" style="align-items: center; padding-top: 30px;">
+
+        <button [clrLoading]="submitBtnState" class="btn btn-success-outline" (click)="createInbox()">
+          <clr-icon shape="inbox"></clr-icon>
+          Create an inbox
+        </button>
+
+        <button class="btn btn-primary-outline" (click)="openInbox()">
+          <clr-icon shape="folder-open" class="is-solid"></clr-icon>
+          Open an inbox
+        </button>
+      </div>
+    </div>
+
+    <div class="content-area" *ngIf="inboxOpened">
+      <inbox *ngIf="inboxOpened" [inboxName]="inboxName"></inbox>
+    </div>
+  </div>
