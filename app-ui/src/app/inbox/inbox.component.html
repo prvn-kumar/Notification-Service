@@ -3,4 +3,28 @@
 <h4>Error</h4>
 <pre>{{error|json}}</pre>
 -->
-<p> Inbox location: {{inboxName}}</p>
+<div *ngIf="error">
+    <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
+</div>
+
+<div *ngIf="!keySaved" class="input-group">
+    <input clrInput placeholder="Key from configuration to decrypt notification..." name="key" [(ngModel)]="key"
+        size="65" />
+    <span class="input-group-btn">
+        <button [clrLoading]="saveBtnState" class="btn btn-success-outline" (click)="saveKey()">Submit</button>
+    </span>
+</div>
+
+<!-- <pre>{{notifications|json}}</pre> -->
+<clr-accordion>
+    <clr-accordion-panel *ngFor="let notification of notifications">
+        <clr-accordion-title>
+            <span style="font-weight: bold;"> Id: {{notification?.id}}</span>
+            <span style="padding-left: 30px;">Created Time: {{notification?.createdTime | date:'medium'}}</span>
+        </clr-accordion-title>
+        <clr-accordion-content *clrIfExpanded>
+            <pre *ngIf="!notification.decryptedContent">{{notification | json}}</pre>
+            <pre *ngIf="notification.decryptedContent">{{notification?.decryptedContent | json}}</pre>
+        </clr-accordion-content>
+    </clr-accordion-panel>
+</clr-accordion>

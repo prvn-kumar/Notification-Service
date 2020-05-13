@@ -2,13 +2,33 @@
   <header class="header-6">
     <div class="branding">
       <a href="/" class="nav-link">
-        <!-- <clr-icon shape="inbox"></clr-icon> -->
-        <span class="title">ACI Webhook App</span>
+        <clr-icon shape="inbox" style="color: #fafafa;"></clr-icon>
+        <span class="title">ACI Webhook Inbox</span>
+      </a>
+    </div>
+    <div class="header-nav" *ngIf="inboxOpened">
+      <a class="nav-link"> Name: {{inboxName}}</a>
+      <span class="nav-link nav-text"> Location: {{inboxLocation}}</span>
+    </div>
+
+    <div class="header-actions" *ngIf="inboxOpened">
+      <a class="nav-icon" aria-label="count">
+        <clr-icon shape="envelope"></clr-icon>
+        <span class="badge badge-2">{{notificationCount}}</span>
+      </a>
+      <a class="nav-link nav-icon" aria-label="refresh">
+        <clr-icon shape="refresh"></clr-icon>
+      </a>
+      <a class="nav-link nav-icon" aria-label="settings">
+        <clr-icon shape="cog"></clr-icon>
       </a>
     </div>
   </header>
 
   <div class="content-container">
+    <div class="content-area" *ngIf="inboxOpened">
+      <inbox [inboxName]="inboxName" [inboxLocation]="inboxLocation"></inbox>
+    </div>
     <div class="content-area" *ngIf="!inboxOpened">
       <div *ngIf="error">
         <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
@@ -21,21 +41,39 @@
         When you create an inbox, you are given a generated URL
         that is to be used by the sending application.
       </span>
-      <div class="center" style="align-items: center; padding-top: 30px;">
+      <div *ngIf="!isOpen" class="center" style="align-items: center; padding-top: 30px;">
 
         <button [clrLoading]="submitBtnState" class="btn btn-success-outline" (click)="createInbox()">
           <clr-icon shape="inbox"></clr-icon>
           Create an inbox
         </button>
 
-        <button class="btn btn-primary-outline" (click)="openInbox()">
+        <button class="btn btn-primary-outline" (click)="isOpenClicked()">
           <clr-icon shape="folder-open" class="is-solid"></clr-icon>
           Open an inbox
         </button>
       </div>
-    </div>
-
-    <div class="content-area" *ngIf="inboxOpened">
-      <inbox *ngIf="inboxOpened" [inboxName]="inboxName"></inbox>
+      <div *ngIf="isOpen" class="center" style="padding-top: 30px;">
+        <div class="clr-row">
+          <div class="card">
+            <div class="card-block">
+              <div class="card-title">Open Inbox</div>
+              <form clrForm clrLayout="horizontal">
+                <clr-input-container>
+                  <label for="inboxToOpen"> Name </label>
+                  <input clrInput placeholder="Inbox name to open..." name="inboxToOpen" [(ngModel)]="inboxToOpen"
+                    size="20" required />
+                </clr-input-container>
+              </form>
+            </div>
+            <div class="card-footer">
+              <button [clrLoading]="openBtnState" class="btn btn-primary-outline" (click)="openInbox()">
+                Open
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+</div>

@@ -1,6 +1,8 @@
 {
   "/": {
     "target": "http://35.158.214.177",
-    "secure": false
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
   }
 }

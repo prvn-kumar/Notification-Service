@@ -1,4 +1,5 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { ClrLoadingState } from '@clr/angular';
 import { InboxService } from '../inbox.service';
 
 @Component({
@@ -8,10 +9,59 @@ import { InboxService } from '../inbox.service';
 })
 export class InboxComponent implements OnInit {
   @Input() inboxName: string;
-  constructor(private inboxService: InboxService) { }
-
-  ngOnInit(): void {
-    console.log("inbox called");
+  @Input() inboxLocation: string;
+  error: any;
+  key: string;
+  keySaved: boolean;
+  notifications: any;
+  saveBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  constructor(private inboxService: InboxService) {
+    console.log("inbox component created...");
   }
 
+  ngOnInit(): void {
+    console.log("inbox called with " + this.inboxName + " & location: " + this.inboxLocation);
+    this.getInbox();
+    this.getInboxNotifications();
+  }
+
+  saveKey() {
+    this.error = null;
+    this.saveBtnState = ClrLoadingState.LOADING;
+    console.log("getting inbox notifications.." + this.inboxName)
+    this.inboxService.saveConfigKey(this.inboxName, this.key)
+      .subscribe((data: any) => {
+        this.notifications = data;
+        this.keySaved = true;
+        this.saveBtnState = ClrLoadingState.DEFAULT;
+      },
+        error => {
+          this.error = error;
+          this.saveBtnState = ClrLoadingState.DEFAULT;
+        });
+  }
+
+  getInbox() {
+    this.error = null;
+    this.inboxService.getInbox(this.inboxName)
+      .subscribe((data: any) => {
+        this.inboxLocation = data.location;
+        this.keySaved = data.configKeySaved;
+      },
+        error => {
+          this.error = error;
+        });
+  }
+
+  getInboxNotifications() {
+    this.error = null;
+    console.log("getting inbox notifications.." + this.inboxName)
+    this.inboxService.getInboxNotifications(this.inboxName)
+      .subscribe((data: any) => {
+        this.notifications = data;
+      },
+        error => {
+          this.error = error;
+        });
+  }
 }
