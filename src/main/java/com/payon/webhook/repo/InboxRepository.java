@@ -1,6 +1,6 @@
 package com.payon.webhook.repo;
 
-import com.payon.webhook.model.Inbox;
+import com.payon.webhook.domain.Inbox;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;

@@ -1,6 +1,6 @@
 package com.payon.webhook.service;
 
-import com.payon.webhook.model.WebHookNotification;
+import com.payon.webhook.domain.WebHookNotification;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 

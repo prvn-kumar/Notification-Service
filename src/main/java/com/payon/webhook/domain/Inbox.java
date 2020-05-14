@@ -1,4 +1,4 @@
-package com.payon.webhook.model;
+package com.payon.webhook.domain;
 
 import org.hibernate.annotations.CreationTimestamp;
 
