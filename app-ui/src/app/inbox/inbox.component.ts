@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ClrLoadingState } from '@clr/angular';
 import { InboxService } from '../inbox.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'inbox',
@@ -10,6 +11,7 @@ import { InboxService } from '../inbox.service';
 export class InboxComponent implements OnInit {
   @Input() inboxName: string;
   @Input() inboxLocation: string;
+  refreshSub: Subscription;
   error: any;
   key: string;
   keySaved: boolean;
@@ -22,7 +24,14 @@ export class InboxComponent implements OnInit {
   ngOnInit(): void {
     console.log("inbox called with " + this.inboxName + " & location: " + this.inboxLocation);
     this.getInbox();
-    this.getInboxNotifications();
+    this.refreshSub = this.inboxService.refreshObservable$.subscribe(() => {
+      console.log("refreshing inbox...")
+      this.getInboxNotifications();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub.unsubscribe();
   }
 
   saveKey() {

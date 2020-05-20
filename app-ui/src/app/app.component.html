@@ -12,18 +12,52 @@
     </div>
 
     <div class="header-actions" *ngIf="inboxOpened">
-      <a class="nav-icon" aria-label="count">
+      <a class="nav-text nav-icon" aria-label="count">
         <clr-icon shape="envelope"></clr-icon>
         <span class="badge badge-2">{{notificationCount}}</span>
       </a>
-      <a class="nav-link nav-icon" aria-label="refresh">
+
+      <!-- <a href="javascript:void(0);" (click)="refresh()" class="nav-link nav-icon" aria-label="refresh">
         <clr-icon shape="refresh"></clr-icon>
+      </a> -->
+
+      <a role="button" (click)="refresh()" class="nav-link nav-icon" aria-label="refresh">
+        <clr-icon *ngIf="!refreshing" shape="refresh"></clr-icon>
+        <span class="spinner spinner-sm" *ngIf="refreshing">
+          Loading...
+        </span>
       </a>
-      <a class="nav-link nav-icon" aria-label="settings">
-        <clr-icon shape="cog"></clr-icon>
-      </a>
+
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger>
+          <clr-icon shape="cog"></clr-icon>
+          <clr-icon shape="caret down"></clr-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <a role="button" (click)="openSaveKeyModal()" clrDropdownItem>Save Config Key</a>
+          <a role="button" (click)="openDeleteModal()" clrDropdownItem>Delete Config Key</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
     </div>
   </header>
+
+  <clr-modal [(clrModalOpen)]="openModel">
+    <h3 class="modal-title">{{modelTitle}}</h3>
+    <div class="modal-body">
+      <p>{{modelDesc}}</p>
+
+      <input clrInput placeholder="Key from configuration to decrypt notification..." name="key" [(ngModel)]="key"
+        size="65" />
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" (click)="cancelSetting()">Cancel</button>
+      <button *ngIf="modelSetting =='save'" type="button" [clrLoading]="modalBtnState" class="btn btn-success"
+        (click)="saveSetting()">SAVE</button>
+      <button *ngIf="modelSetting =='delete'" type="button" [clrLoading]="modalBtnState" class="btn btn-danger"
+        (click)="deleteSetting()">DELETE</button>
+    </div>
+  </clr-modal>
+  <!-- <app-settings-model [openModel]="openModel" [modelSetting]="modelSetting"></app-settings-model> -->
 
   <div class="content-container">
     <div class="content-area" *ngIf="inboxOpened">
@@ -67,8 +101,12 @@
               </form>
             </div>
             <div class="card-footer">
+              <div class="progress loop" *ngIf="openingInbox"><progress></progress></div>
+              <button class="btn btn-danger-outline" (click)="cancelOpenInbox()">
+                Cancel
+              </button>
               <button [clrLoading]="openBtnState" class="btn btn-primary-outline" (click)="openInbox()">
-                Open
+                Open Inbox
               </button>
             </div>
           </div>

@@ -18,9 +18,18 @@ export class AppComponent {
   inboxOpened: boolean;
   submitBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
   openBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  modalBtnState: ClrLoadingState = ClrLoadingState.DEFAULT;
+  key: string;
   error: any;
-
-  constructor(private inboxService: InboxService) { }
+  refreshing: boolean;
+  openModel: boolean;
+  modelSetting: string;
+  openingInbox: boolean;
+  modelTitle: string;
+  modelDesc: string;
+  constructor(private inboxService: InboxService) {
+    this.openModel = false;
+  }
 
   createInbox() {
     this.error = null;
@@ -40,26 +49,84 @@ export class AppComponent {
         });
   }
 
+  openSaveKeyModal() {
+    console.log("save modal clicked.. " + this.openModel);
+    this.modelSetting = "save";
+    this.modelTitle = "Save configuration key";
+    this.modelDesc = "Webhook configuration key required for decryption will be saved for this inbox: " + this.inboxName;
+    this.openModel = true;
+  }
+
+  openDeleteModal() {
+    console.log("delete modal clicked.. " + this.openModel);
+    this.modelSetting = "delete";
+    this.modelTitle = "Delete configuration key";
+    this.modelDesc = "Delete config key from this inbox: " + this.inboxName;
+    this.openModel = true;
+  }
+
+  cancelSetting() {
+    this.openModel = false;
+  }
+  saveSetting() {
+    this.openModel = false;
+  }
+  deleteSetting() {
+    this.openModel = false;
+  }
+
   isOpenClicked() {
     this.error = null;
     this.isOpen = true;
   }
 
-  openInbox() {
+  cancelOpenInbox() {
     this.error = null;
-    this.openBtnState = ClrLoadingState.LOADING;
-    this.inboxService.getInbox(this.inboxToOpen)
+    this.isOpen = false;
+  }
+
+  refresh() {
+    this.refreshing = true;
+    this.refreshInbox();
+    this.inboxService.refreshInbox();
+  }
+
+  refreshInbox() {
+    this.error = null;
+    this.inboxService.getInbox(this.inboxName)
       .subscribe((data: any) => {
-        this.inboxName = data.name;
-        this.inboxLocation = data.location;
         this.notificationCount = data.notificationCount;
-        this.configKeySaved = data.configKeySaved;
-        this.openBtnState = ClrLoadingState.DEFAULT;
-        this.inboxOpened = true;
+        this.refreshing = false;
       },
         error => {
           this.error = error;
-          this.openBtnState = ClrLoadingState.DEFAULT;
+          this.refreshing = false;
         });
+  }
+
+  openInbox() {
+    if (!this.inboxToOpen) {
+      this.error = "Inbox name is required to open!";
+    }
+    else {
+      this.error = null;
+      this.openingInbox = true;
+      this.openBtnState = ClrLoadingState.LOADING;
+      this.inboxService.getInbox(this.inboxToOpen)
+        .subscribe((data: any) => {
+          this.inboxName = data.name;
+          this.inboxLocation = data.location;
+          this.notificationCount = data.notificationCount;
+          this.configKeySaved = data.configKeySaved;
+          this.openBtnState = ClrLoadingState.DEFAULT;
+          this.inboxOpened = true;
+          this.openingInbox = false;
+        },
+          error => {
+            this.error = error;
+            this.openingInbox = false;
+            this.openBtnState = ClrLoadingState.DEFAULT;
+          });
+    }
   }
 }
