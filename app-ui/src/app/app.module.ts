@@ -9,11 +9,13 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { InboxService } from './inbox.service';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { SettingsModelComponent } from './model/settings-model/settings-model.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    InboxComponent
+    InboxComponent,
+    SettingsModelComponent
   ],
   imports: [
     BrowserModule,

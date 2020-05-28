@@ -7,14 +7,6 @@
     <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
 </div>
 
-<div *ngIf="!keySaved" class="input-group">
-    <input clrInput placeholder="Key from configuration to decrypt notification..." name="key" [(ngModel)]="key"
-        size="65" />
-    <span class="input-group-btn">
-        <button [clrLoading]="saveBtnState" class="btn btn-success-outline" (click)="saveKey()">Submit</button>
-    </span>
-</div>
-
 <!-- <pre>{{notifications|json}}</pre> -->
 <clr-accordion>
     <clr-accordion-panel *ngFor="let notification of notifications">

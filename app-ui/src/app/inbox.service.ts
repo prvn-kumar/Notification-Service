@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { throwError } from 'rxjs';
+import { throwError, Subject } from 'rxjs';
 import { catchError, retry } from 'rxjs/operators';
 
 const httpOptions = {
@@ -14,6 +14,8 @@ const httpOptions = {
   providedIn: 'root'
 })
 export class InboxService {
+  private refreshSubject = new Subject();
+  refreshObservable$ = this.refreshSubject.asObservable();
   constructor(private http: HttpClient) { }
   inboxUrl = '/webhook-inbox';
 
@@ -22,6 +24,10 @@ export class InboxService {
       .pipe(
         catchError(this.handleError)
       );
+  }
+
+  refreshInbox() {
+    this.refreshSubject.next();
   }
 
   getInbox(name: string) {
