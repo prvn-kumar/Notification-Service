@@ -33,16 +33,23 @@ export class InboxService {
   getInbox(name: string) {
     return this.http.get<any>(this.inboxUrl + '/' + name)
       .pipe(
-        retry(3), // retry a failed request up to 3 times
+        //  retry(3), // retry a failed request up to 3 times
         catchError(this.handleError)
       );
   }
 
   saveConfigKey(inboxName: string, key: string) {
-    const url = this.inboxUrl + '/' + inboxName + '/notification?configKey=' + key + '&saveConfigKey=true';
-    return this.http.get<any>(url)
+    const url = this.inboxUrl + '/' + inboxName + '/config/' + key;
+    return this.http.post<any>(url, null, httpOptions)
       .pipe(
-        retry(3), // retry a failed request up to 3 times
+        catchError(this.handleError)
+      );
+  }
+
+  deleteConfigKey(inboxName: string, key: string) {
+    const url = this.inboxUrl + '/' + inboxName + '/config/' + key;
+    return this.http.delete<any>(url, httpOptions)
+      .pipe(
         catchError(this.handleError)
       );
   }
@@ -50,7 +57,7 @@ export class InboxService {
   getInboxNotifications(name: string) {
     return this.http.get<any>(this.inboxUrl + '/' + name + '/notification')
       .pipe(
-        retry(3), // retry a failed request up to 3 times
+        // retry(3), // retry a failed request up to 3 times
         catchError(this.handleError)
       );
   }

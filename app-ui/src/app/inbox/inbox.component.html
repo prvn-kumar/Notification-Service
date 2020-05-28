@@ -1,22 +1,35 @@
-<!-- <h3>ShowConfig Output</h3>
-<pre>{{config|json}}</pre>
-<h4>Error</h4>
-<pre>{{error|json}}</pre>
--->
 <div *ngIf="error">
     <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
 </div>
+<div>
+    <clr-alert [clrAlertType]="'info'" [(clrAlertClosed)]="alertClosed">
+        <clr-alert-item>
+            <span class="alert-text">
+                {{alertMsg}}
+            </span>
+        </clr-alert-item>
+    </clr-alert>
+</div>
 
-<!-- <pre>{{notifications|json}}</pre> -->
-<clr-accordion>
+<clr-accordion *ngIf="!error">
     <clr-accordion-panel *ngFor="let notification of notifications">
         <clr-accordion-title>
-            <span style="font-weight: bold;"> Id: {{notification?.id}}</span>
-            <span style="padding-left: 30px;">Created Time: {{notification?.createdTime | date:'medium'}}</span>
+            <span style="font-weight: bold">{{notification?.createdTime | date:'medium'}}</span>
+            <span style="font-weight: bold;padding-left: 30px;">{{notification?.decryptedContent?.type}}</span>
+            <span
+                style="font-weight: bold;padding-left: 30px;">{{notification?.decryptedContent?.payload?.paymentType}}</span>
+            <span
+                style="font-weight: bold;padding-left: 10px;">{{notification?.decryptedContent?.payload?.amount}}</span>
+            <span style="font-weight: bold;">{{notification?.decryptedContent?.payload?.currency}}</span>
+
         </clr-accordion-title>
         <clr-accordion-content *clrIfExpanded>
             <pre *ngIf="!notification.decryptedContent">{{notification | json}}</pre>
             <pre *ngIf="notification.decryptedContent">{{notification?.decryptedContent | json}}</pre>
         </clr-accordion-content>
+
+        <button class="btn btn-sm btn-link" (click)="downloadNotification(notification)">
+            <clr-icon shape="download"></clr-icon> Download
+        </button>
     </clr-accordion-panel>
 </clr-accordion>

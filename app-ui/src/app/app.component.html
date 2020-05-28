@@ -46,19 +46,28 @@
     <div class="modal-body">
       <p>{{modelDesc}}</p>
 
-      <input clrInput placeholder="Key from configuration to decrypt notification..." name="key" [(ngModel)]="key"
-        size="65" />
+      <form clrForm clrLayout="horizontal">
+        <clr-input-container>
+          <label for="key">Key</label>
+          <input clrInput placeholder="Key from webhook configuration to decrypt notification..." name="key"
+            [(ngModel)]="key" size="65" required />
+          <clr-control-error>Key from webhook configuration is required!</clr-control-error>
+        </clr-input-container>
+      </form>
     </div>
     <div class="modal-footer">
       <button type="button" class="btn btn-outline" (click)="cancelSetting()">Cancel</button>
       <button *ngIf="modelSetting =='save'" type="button" [clrLoading]="modalBtnState" class="btn btn-success"
-        (click)="saveSetting()">SAVE</button>
+        (click)="saveSetting()" [disabled]="!key">SAVE</button>
       <button *ngIf="modelSetting =='delete'" type="button" [clrLoading]="modalBtnState" class="btn btn-danger"
-        (click)="deleteSetting()">DELETE</button>
+        (click)="deleteSetting()" [disabled]="!key">DELETE</button>
     </div>
   </clr-modal>
   <!-- <app-settings-model [openModel]="openModel" [modelSetting]="modelSetting"></app-settings-model> -->
-
+  <div *ngIf="error">
+    <pre style="font-weight: bold; color: red;">Error: {{error|json}}</pre>
+  </div>
+  
   <div class="content-container">
     <div class="content-area" *ngIf="inboxOpened">
       <inbox [inboxName]="inboxName" [inboxLocation]="inboxLocation"></inbox>
@@ -105,7 +114,8 @@
               <button class="btn btn-danger-outline" (click)="cancelOpenInbox()">
                 Cancel
               </button>
-              <button [clrLoading]="openBtnState" class="btn btn-primary-outline" (click)="openInbox()">
+              <button [clrLoading]="openBtnState" class="btn btn-primary-outline" (click)="openInbox()"
+                [disabled]="!inboxToOpen">
                 Open Inbox
               </button>
             </div>

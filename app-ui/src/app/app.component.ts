@@ -53,7 +53,7 @@ export class AppComponent {
     console.log("save modal clicked.. " + this.openModel);
     this.modelSetting = "save";
     this.modelTitle = "Save configuration key";
-    this.modelDesc = "Webhook configuration key required for decryption will be saved for this inbox: " + this.inboxName;
+    this.modelDesc = "Webhook configuration key required for decryption will be saved for the inbox: " + this.inboxName;
     this.openModel = true;
   }
 
@@ -69,10 +69,40 @@ export class AppComponent {
     this.openModel = false;
   }
   saveSetting() {
-    this.openModel = false;
+    this.error = null;
+    this.modalBtnState = ClrLoadingState.LOADING;
+    this.inboxService.saveConfigKey(this.inboxName, this.key)
+      .subscribe((data: any) => {
+        this.modalBtnState = ClrLoadingState.SUCCESS;
+        this.inboxService.refreshInbox();
+        setTimeout(() => {
+          this.openModel = false;
+          this.key = null;
+        }, 1000);
+      },
+        error => {
+          this.error = error;
+          this.modalBtnState = ClrLoadingState.DEFAULT;
+          this.openModel = false;
+        });
   }
   deleteSetting() {
-    this.openModel = false;
+    this.error = null;
+    this.modalBtnState = ClrLoadingState.LOADING;
+    this.inboxService.deleteConfigKey(this.inboxName, this.key)
+      .subscribe(() => {
+        this.modalBtnState = ClrLoadingState.SUCCESS;
+        this.inboxService.refreshInbox();
+        setTimeout(() => {
+          this.openModel = false;
+          this.key = null;
+        }, 1000);
+      },
+        error => {
+          this.error = error;
+          this.modalBtnState = ClrLoadingState.DEFAULT;
+          this.openModel = false;
+        });
   }
 
   isOpenClicked() {
