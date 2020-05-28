@@ -75,6 +75,24 @@ public class NotificationController {
         }
     }
 
+    @PostMapping(value = "/webhook-inbox/{name}", consumes = MediaType.TEXT_PLAIN_VALUE)
+    public void createNotificationTextPlain(HttpServletRequest request, @PathVariable String name, @RequestBody String encryptedText) {
+        if (inboxRepository.findByName(name).isEmpty())
+            throw new RecordNotFoundException("Inbox '" + name + "' does no exist");
+        Inbox inbox = inboxRepository.findByName(name).get(0);
+
+        try {
+            WebHookNotification notification = new WebHookNotification();
+            notification.setEncryptedBody(encryptedText);
+            notification.setAuthHeader(request.getHeader("X-Authentication-Tag"));
+            notification.setIvHeader(request.getHeader("X-Initialization-Vector"));
+            inbox.getNotifications().add(notification);
+            inboxRepository.save(inbox);
+        } catch (Exception e) {
+            throw new WebhookException(e.getMessage());
+        }
+    }
+
     @GetMapping("/webhook-inbox/{name}")
     public InboxDto getInbox(@PathVariable String name, HttpServletRequest request) {
         List<Inbox> inboxResult = inboxRepository.findByName(name);
@@ -86,6 +104,26 @@ public class NotificationController {
                 && !inboxResult.get(0).getConfigurationKey().isEmpty());
         dto.setNotificationCount(inboxResult.get(0).getNotifications().size());
         return dto;
+    }
+
+    @PostMapping(value = "/webhook-inbox/{name}/config/{key}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void saveConfigKey(@PathVariable String name, @PathVariable String key) {
+        checkAndSaveConfig(name, key, true);
+    }
+
+    @DeleteMapping(value = "/webhook-inbox/{name}/config/{key}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void removeConfigKey(@PathVariable String name, @PathVariable String key) {
+        if (inboxRepository.findByName(name).isEmpty())
+            throw new RecordNotFoundException("Inbox '" + name + "' does no exist");
+
+        Inbox inbox = inboxRepository.findByName(name).get(0);
+
+        if (key != null && !key.isEmpty() && key.equals(inbox.getConfigurationKey())) {
+            inbox.setConfigurationKey(null);
+            inboxRepository.save(inbox);
+        } else {
+            throw new RecordNotFoundException("Configuration key '" + key + "' does no exist!");
+        }
     }
 
     @GetMapping("/webhook-inbox/{name}/notification")
@@ -148,7 +186,7 @@ public class NotificationController {
             decrypted.setCreatedTime(notification.getCreatedTime());
             return decrypted;
         } catch (Exception e) {
-            throw new WebhookException(e.getMessage());
+            throw new WebhookException("Error while decrypting notifications! " + e.getMessage());
         }
     }
 
